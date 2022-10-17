@@ -143,12 +143,49 @@ def test_patient_normalise(test, expected):
     [
         ([[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]]),
         ([[1, 1, 1], [1, 1, 1], [1, 1, 1]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]]),
+        ([[1, 2, 3], [4, -5, 6], [7, 8, 9]], [[0.33, 0.66, 1], [0.66, 0, 1], [0.77, 0.88, 1]]),
+        ([[1, 1, 1], [1, np.inf, 1], [1, 1, 1]], [[1, 1, 1], [1, 0, 1], [1, 1, 1]]),
         ([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[0.33, 0.66, 1], [0.66, 0.83, 1], [0.77, 0.88, 1]]),
     ])
 def test_patient_normalise(test, expected):
-    """Test normalisation works for arrays of zeros, ones and positive integers."""
+    """Test normalisation works for arrays of normal and edge values."""
     from inflammation.models import patient_normalise
     npt.assert_almost_equal(np.array(expected), patient_normalise(np.array(test)), decimal=2)
 
 # TODO(lesson-automatic) Implement tests for the other statistical functions
 # TODO(lesson-mocking) Implement a unit test for the load_csv function
+
+""" Adding expected_error testing """
+@pytest.mark.parametrize(
+    "test, expected, expected_error",
+    [
+         # other test cases here, with None for raises
+        (
+            [[-1, 2, 3], [4, 5, 6], [7, 8, 9]],
+            [[0, 0.66, 1], [0.66, 0.83, 1], [0.77, 0.88, 1]],
+            ValueError,
+        ),
+        (
+            [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+            [[0.33, 0.66, 1], [0.66, 0.83, 1], [0.77, 0.88, 1]],
+            None,
+        ),
+        (
+            "Hello",
+            "World",
+            TypeError,
+        ),
+        (
+            {1:2,3:4},
+            [[0.33, 0.66, 1], [0.66, 0.83, 1], [0.77, 0.88, 1]],
+            TypeError,
+        ),
+    ])
+def test_patient_normalise(test, expected, expected_error):
+    """Test normalisation works for arrays of different inputs."""
+    from inflammation.models import patient_normalise
+    if expected_error:
+        with pytest.raises(expected_error):
+            npt.assert_almost_equal(np.array(expected), patient_normalise(np.array(test)), decimal=2)
+    else:
+        npt.assert_almost_equal(np.array(expected), patient_normalise(np.array(test)), decimal=2)
